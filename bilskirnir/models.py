@@ -43,7 +43,7 @@ class Picture(models.Model):
             self.image.name.split('/')[-1])
         )
 
-    def get_thumb_url(self, width, height):
+    def get_thumb_url(self, height=156, width=156):
         # TODO: Make more generic
         # Check for file existence in the process
         self.get_thumb_path(width, height) 
