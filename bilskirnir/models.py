@@ -33,17 +33,25 @@ class Picture(models.Model):
 
     def create_thumb(self, width, height):
         img = Image.open(self.image.path)
-        if width > 0 and height > 0:
-            h = height
-            if h == 0 and width < self.image.width:
-                h = int(self.image.height * (float(width) / self.image.width))
-            img.thumbnail((width, h), Image.ANTIALIAS)
+        h = height
+        w = width
+        if h == 0:
+            if w < self.image.width:
+                h = int(self.image.height * (float(w) / self.image.width))
+            else:
+                h = self.image.height
+        if w == 0:
+            if h < self.image.height:
+                w = int(self.image.width * (float(h) / self.image.height))
+            else:
+                w = self.image.width
+        img.thumbnail((w, h), Image.ANTIALIAS)
         img.save("%s/%s/%d.%d/%s" % (
             settings.MEDIA_ROOT, UPLOAD_TO, width, height, 
             self.image.name.split('/')[-1])
         )
 
-    def get_thumb_url(self, height=156, width=156):
+    def get_thumb_url(self, width, height):
         # TODO: Make more generic
         # Check for file existence in the process
         self.get_thumb_path(width, height) 
@@ -91,17 +99,32 @@ class Gallery(models.Model):
     
     def __unicode__(self):
         return self.title or "gallery_%d" % self.pk
-        
-    def get_thumbnail(self, height=156, width=156):
-        # TODO: Get a random thumb, and check if there are no 'featured' ones
+
+    def get_thumb(self):
         thumbs = self.galleryitem_set.filter(
             featured=True
         ) or self.galleryitem_set.all()
         if thumbs:
-            thumb = random.sample(thumbs, 1)[0]
+            return random.sample(thumbs, 1)[0]
+        else:
+            return None
+        
+    def get_thumb_url(self, width, height):
+        thumb = self.get_thumb()
+        if thumb:
+            return thumb.picture.get_thumb_url(
+                width, height
+            )
+        else:
+            return u"No thumbnail"
+            
+    def get_thumbnail(self, width=0, height=100):
+        # TODO: Get a random thumb, and check if there are no 'featured' ones
+        thumb = self.get_thumb()
+        if thumb:
             return u'<img src="%s" alt="%s">' % (
                 thumb.picture.get_thumb_url(
-                    height, width
+                    width, height
                 ), thumb.title
             )
         else:
