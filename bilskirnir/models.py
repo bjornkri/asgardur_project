@@ -147,7 +147,7 @@ class GalleryItem(models.Model):
     featured = models.BooleanField(default=False)
     
     def __unicode__(self):
-        return "%s in %s" % (self.picture, self.gallery)
+        return "%s in %s" % (self.picture.__unicode__(), self.gallery.__unicode__())
         
     def url(self):
         return self.picture.image.url
