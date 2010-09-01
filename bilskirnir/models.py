@@ -54,8 +54,11 @@ class Picture(models.Model):
     def get_thumb_url(self, width, height):
         # TODO: Make more generic
         # Check for file existence in the process
-        if self.image.height < height and self.image.width < width:
-            return self.image.url
+        try:
+            if self.image.height < height and self.image.width < width:
+                return self.image.url
+        except IOError:
+            return None
         self.get_thumb_path(width, height) 
         return "%s%s/%d.%d/%s" % (
             settings.MEDIA_URL, UPLOAD_TO, width, height,
